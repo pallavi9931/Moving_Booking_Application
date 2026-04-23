@@ -1,0 +1,3 @@
+com\movie_booking_system\notification_service\infrastructure\kafka\KafkaListenerConfiguration.class
+com\movie_booking_system\notification_service\infrastructure\kafka\BookingEventConsumer.class
+com\movie_booking_system\notification_service\NotificationServiceApplication.class

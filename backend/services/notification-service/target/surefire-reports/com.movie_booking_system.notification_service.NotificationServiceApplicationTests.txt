@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.movie_booking_system.notification_service.NotificationServiceApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 29.25 s -- in com.movie_booking_system.notification_service.NotificationServiceApplicationTests
