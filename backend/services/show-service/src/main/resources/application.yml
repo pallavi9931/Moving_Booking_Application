@@ -1,6 +1,9 @@
 server:
   port: 8081
 
+booking-service:
+  base-url: http://localhost:8082
+
 spring:
   application:
     name: show-service

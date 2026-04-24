@@ -2,7 +2,9 @@ package com.movie_booking_system.booking_service.infrastructure.redis;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -54,6 +56,23 @@ public class RedisSeatLockAdapter implements SeatLockPort {
 		for (String key : keys) {
 			redisTemplate.delete(key);
 		}
+	}
+
+	@Override
+	public List<String> findLockedSeatIds(Long showId) {
+		String pattern = "lock:" + showId + ":*";
+		Set<String> keys = redisTemplate.keys(pattern);
+		if (keys == null || keys.isEmpty()) {
+			return Collections.emptyList();
+		}
+		String prefix = "lock:" + showId + ":";
+		List<String> seatIds = new ArrayList<>();
+		for (String key : keys) {
+			if (key != null && key.startsWith(prefix)) {
+				seatIds.add(key.substring(prefix.length()));
+			}
+		}
+		return seatIds;
 	}
 
 	private static String buildKey(Long showId, String seatId) {

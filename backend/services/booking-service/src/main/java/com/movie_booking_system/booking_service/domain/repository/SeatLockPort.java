@@ -8,4 +8,10 @@ public interface SeatLockPort {
 
 	void releaseSeats(Long showId, List<String> seats);
 
+	/**
+	 * Returns seat identifiers that currently hold a Redis lock for the given show.
+	 * Keys follow {@code lock:{showId}:{seatId}}.
+	 */
+	List<String> findLockedSeatIds(Long showId);
+
 }
