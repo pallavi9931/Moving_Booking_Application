@@ -3,6 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getMovieDetailsUseCase, searchMoviesUseCase } from '../../core/di';
 import { Play, Star, Clock, Calendar, Ticket, ChevronLeft, Share2, Heart } from 'lucide-react';
 
+function formatShowTimeLabel(time) {
+  if (!time || typeof time !== 'string') return '';
+  if (time.includes('T')) {
+    const part = time.split('T')[1] || '';
+    return part.slice(0, 5);
+  }
+  return time.slice(0, 5);
+}
+
 export default function MovieDetails() {
   const { movieId } = useParams();
   const navigate = useNavigate();
@@ -18,7 +27,8 @@ export default function MovieDetails() {
       searchMoviesUseCase.execute()
     ]).then(([movieData, searchData]) => {
       setMovie(movieData);
-      setShows(searchData.shows || []);
+      const all = searchData.shows || [];
+      setShows(all.filter((s) => String(s.movieId) === String(movieId)));
       setLoading(false);
     }).catch(() => {
       setLoading(false);
@@ -100,7 +110,7 @@ export default function MovieDetails() {
               <div className="cast-section mt-16 mb-12">
                 <h4 className="section-subtitle">Top Cast</h4>
                 <div className="cast-list gap-8">
-                  {movie.cast.map(name => (
+                  {(movie.cast && movie.cast.length > 0 ? movie.cast : ['TBA']).map(name => (
                     <div key={name} className="cast-item">
                       <div className="cast-avatar">
                         <img src={`https://ui-avatars.com/api/?name=${name}&background=0D1117&color=fff&bold=true`} alt={name} />
@@ -130,26 +140,46 @@ export default function MovieDetails() {
           </div>
 
           <div className="theatre-showtimes mt-16">
-            <div className="theatre-card mb-16">
-              <div className="theatre-header flex align-center gap-4 mb-4">
-                <Ticket className="text-primary" size={24} />
-                <h3 className="theatre-name" style={{ fontSize: '1.5rem' }}>ROYALE CINEMAS - IMAX</h3>
-              </div>
-              
-              <div className="showtimes-grid">
-                {shows.map(show => (
-                  <button 
-                    key={show.showId}
-                    className="big-time-btn"
-                    onClick={() => navigate(`/shows/${show.showId}/seats`)}
-                  >
-                    <span className="time">{show.time.substring(0, 5)}</span>
-                    <span className="format text-muted">{show.format}</span>
-                    <span className="price text-accent">From ₹300</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            {shows.length === 0 ? (
+              <p className="text-muted">No showtimes available.</p>
+            ) : (
+              Object.entries(
+                shows.reduce((acc, s) => {
+                  const k = s.theatreName || 'Theatre';
+                  if (!acc[k]) acc[k] = [];
+                  acc[k].push(s);
+                  return acc;
+                }, {})
+              ).map(([theatreName, slots]) => (
+                <div key={theatreName} className="theatre-card mb-16">
+                  <div className="theatre-header flex align-center gap-4 mb-4">
+                    <Ticket className="text-primary" size={24} />
+                    <h3 className="theatre-name" style={{ fontSize: '1.5rem' }}>{theatreName}</h3>
+                  </div>
+                  <div className="showtimes-grid">
+                    {slots.map((show) => (
+                      <button
+                        key={show.showId}
+                        className="big-time-btn"
+                        onClick={() =>
+                          navigate(`/shows/${show.showId}/seats`, {
+                            state: {
+                              movieId,
+                              theatreName,
+                              showTime: show.time
+                            }
+                          })
+                        }
+                      >
+                        <span className="time">{formatShowTimeLabel(show.time)}</span>
+                        <span className="format text-muted">{show.format}</span>
+                        <span className="price text-accent">From ₹300</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>

@@ -1,6 +1,7 @@
 package com.movie_booking_system.booking_service.domain.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface SeatLockPort {
 
@@ -13,5 +14,10 @@ public interface SeatLockPort {
 	 * Keys follow {@code lock:{showId}:{seatId}}.
 	 */
 	List<String> findLockedSeatIds(Long showId);
+
+	/**
+	 * Value stored in Redis for the lock (typically the username from {@code X-User}).
+	 */
+	Optional<String> getLockOwner(Long showId, String seatId);
 
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User, Mail, Shield, Settings, Heart, History, LogOut, ChevronRight, Save, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getSessionUsername } from '../../data/auth/jwtUsername';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -21,11 +22,16 @@ export default function Profile() {
   const [editData, setEditData] = useState({ ...user });
 
   useEffect(() => {
+    const accountName = getSessionUsername();
+    if (accountName) {
+      setUser((prev) => ({ ...prev, name: accountName }));
+      setEditData((prev) => ({ ...prev, name: accountName }));
+    }
     const savedUser = localStorage.getItem('user_profile');
     if (savedUser) {
       const parsed = JSON.parse(savedUser);
-      setUser(prev => ({ ...prev, ...parsed }));
-      setEditData(prev => ({ ...prev, ...parsed }));
+      setUser((prev) => ({ ...prev, ...parsed, name: parsed.name || accountName || prev.name }));
+      setEditData((prev) => ({ ...prev, ...parsed, name: parsed.name || accountName || prev.name }));
     }
   }, []);
 

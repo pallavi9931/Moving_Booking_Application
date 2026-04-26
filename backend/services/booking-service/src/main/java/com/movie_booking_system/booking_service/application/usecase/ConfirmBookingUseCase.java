@@ -12,13 +12,13 @@ import com.movie_booking_system.booking_service.domain.repository.BookingReposit
 import com.movie_booking_system.booking_service.domain.repository.SeatLockPort;
 
 @Service
-public class BookSeatsUseCase {
+public class ConfirmBookingUseCase {
 
 	private final SeatLockPort seatLockPort;
 	private final BookingRepository bookingRepository;
 	private final BookingEventPort bookingEventPort;
 
-	public BookSeatsUseCase(
+	public ConfirmBookingUseCase(
 			SeatLockPort seatLockPort,
 			BookingRepository bookingRepository,
 			BookingEventPort bookingEventPort) {
@@ -28,18 +28,20 @@ public class BookSeatsUseCase {
 	}
 
 	public void execute(Long showId, List<String> seats, String userId) {
-		if (!seatLockPort.lockSeats(showId, seats, userId)) {
-			throw new SeatsNotAvailableException("Seats not available");
+		if (userId == null || userId.isBlank()) {
+			throw new IllegalArgumentException("Missing user identity");
 		}
-		try {
-			Booking booking = new Booking(null, showId, new ArrayList<>(seats), userId);
-			Booking saved = bookingRepository.save(booking);
-			bookingEventPort.publishBookingConfirmed(saved);
+		if (showId == null || seats == null || seats.isEmpty()) {
+			throw new IllegalArgumentException("showId and seats are required");
 		}
-		catch (RuntimeException ex) {
-			seatLockPort.releaseSeats(showId, seats);
-			throw ex;
+		for (String seatId : seats) {
+			if (!seatLockPort.getLockOwner(showId, seatId).filter(userId::equals).isPresent()) {
+				throw new SeatsNotAvailableException("Seat not locked by this user: " + seatId);
+			}
 		}
+		Booking booking = new Booking(null, showId, new ArrayList<>(seats), userId);
+		Booking saved = bookingRepository.save(booking);
+		bookingEventPort.publishBookingConfirmed(saved);
+		seatLockPort.releaseSeats(showId, seats);
 	}
-
 }

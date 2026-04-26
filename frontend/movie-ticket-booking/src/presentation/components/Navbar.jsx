@@ -1,26 +1,61 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Film, Search, User, Bell, Menu, X } from 'lucide-react';
+import { apiClient, getToken, clearToken } from '../../data/api/apiClient';
+import { clearSessionUsername, getSessionUsername } from '../../data/auth/jwtUsername';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [userName, setUserName] = useState('Pallavi');
+  const [userName, setUserName] = useState(() => getSessionUsername() || 'Guest');
+  const [authed, setAuthed] = useState(() => !!getToken());
+
+  useEffect(() => {
+    const syncAuth = () => setAuthed(!!getToken());
+    window.addEventListener('storage', syncAuth);
+    window.addEventListener('authchange', syncAuth);
+    return () => {
+      window.removeEventListener('storage', syncAuth);
+      window.removeEventListener('authchange', syncAuth);
+    };
+  }, []);
 
   useEffect(() => {
     const loadProfile = () => {
+      const u = getSessionUsername();
+      if (u) {
+        setUserName(u);
+        return;
+      }
       const savedUser = localStorage.getItem('user_profile');
       if (savedUser) {
         const parsed = JSON.parse(savedUser);
-        setUserName(parsed.name);
+        setUserName(parsed.name || 'Guest');
       }
     };
 
     loadProfile();
     window.addEventListener('profileUpdate', loadProfile);
-    return () => window.removeEventListener('profileUpdate', loadProfile);
+    window.addEventListener('authchange', loadProfile);
+    return () => {
+      window.removeEventListener('profileUpdate', loadProfile);
+      window.removeEventListener('authchange', loadProfile);
+    };
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await apiClient.post('/auth/logout', {});
+    } catch {
+      // Still clear session locally if server unreachable
+    } finally {
+      clearToken();
+      clearSessionUsername();
+      window.dispatchEvent(new Event('authchange'));
+      navigate('/login', { replace: true });
+    }
+  };
 
   return (
     <nav className="navbar glass-navbar">
@@ -56,14 +91,30 @@ export default function Navbar() {
             <span className="notification-dot"></span>
           </button>
           
-          <div className="profile-dropdown">
-            <button className="profile-btn" onClick={() => navigate('/profile')}>
-              <div className="profile-avatar">
-                <User size={18} />
+          {authed ? (
+            <>
+              <div className="profile-dropdown">
+                <button className="profile-btn" onClick={() => navigate('/profile')}>
+                  <div className="profile-avatar">
+                    <User size={18} />
+                  </div>
+                  <span className="profile-name">{userName}</span>
+                </button>
               </div>
-              <span className="profile-name">{userName}</span>
-            </button>
-          </div>
+              <button type="button" className="btn btn-outline" onClick={handleLogout}>
+                Log out
+              </button>
+            </>
+          ) : (
+            <div className="flex-center gap-2">
+              <Link to="/login" className="btn btn-outline">
+                Log in
+              </Link>
+              <Link to="/register" className="btn btn-primary">
+                Register
+              </Link>
+            </div>
+          )}
         </div>
 
         <button 
@@ -90,9 +141,25 @@ export default function Navbar() {
             <button className="btn btn-outline full-width flex-center gap-2">
               <Bell size={18} /> Notifications
             </button>
-            <button className="btn btn-primary full-width flex-center gap-2" onClick={() => navigate('/profile')}>
-              <User size={18} /> {userName}
-            </button>
+            {authed ? (
+              <>
+                <button className="btn btn-primary full-width flex-center gap-2" onClick={() => navigate('/profile')}>
+                  <User size={18} /> {userName}
+                </button>
+                <button type="button" className="btn btn-outline full-width" onClick={handleLogout}>
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="btn btn-outline full-width flex-center gap-2">
+                  Log in
+                </Link>
+                <Link to="/register" className="btn btn-primary full-width flex-center gap-2">
+                  Register
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

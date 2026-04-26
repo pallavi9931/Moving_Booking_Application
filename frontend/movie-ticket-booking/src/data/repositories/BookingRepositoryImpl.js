@@ -1,27 +1,21 @@
-const getMockState = () => JSON.parse(localStorage.getItem("mock_seats") || "{}");
-const setMockState = (state) => localStorage.setItem("mock_seats", JSON.stringify(state));
+import { apiClient } from "../api/apiClient";
+
 class BookingRepositoryImpl {
-  async confirmBooking(seatIds, showId, paymentId) {
-    let state = getMockState();
-    let seats = state[showId] || [];
-    let bookedSeats = [];
-    seats.forEach((s) => {
-      if (seatIds.includes(s.seatId)) {
-        s.status = "BOOKED";
-        s.lockToken = null;
-        s.lockExpiry = null;
-        bookedSeats.push(s.seatId);
-      }
+  async confirmBooking(seatIds, showId) {
+    await apiClient.post("/booking/confirm", {
+      showId: Number(showId),
+      seats: seatIds
     });
-    setMockState(state);
     return {
       success: true,
-      bookingRefId: "BK-" + Math.floor(Math.random() * 1e6),
+      bookingRefId: `BK-${showId}-${Date.now()}`,
       status: "CONFIRMED",
-      tickets: bookedSeats.map((id) => ({ seatId: id, qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${id}` }))
+      tickets: seatIds.map((id) => ({
+        seatId: id,
+        qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(id)}`
+      }))
     };
   }
 }
-export {
-  BookingRepositoryImpl
-};
+
+export { BookingRepositoryImpl };

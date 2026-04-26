@@ -3,11 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { confirmBookingUseCase } from "../../core/di";
 import { ShieldCheck, Ticket, CreditCard, ChevronLeft } from "lucide-react";
 
+function readSeatIds() {
+  try {
+    return JSON.parse(sessionStorage.getItem("seatIds") || "[]");
+  } catch {
+    return [];
+  }
+}
+
 export default function Checkout() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const showId = sessionStorage.getItem("showId");
-  const seatIds = JSON.parse(sessionStorage.getItem("seatIds") || "[]");
+  const seatIds = readSeatIds();
+  const movieTitle = sessionStorage.getItem("movieTitle") || "Movie";
 
   useEffect(() => {
     if (seatIds.length === 0) {
@@ -23,7 +32,7 @@ export default function Checkout() {
       // Mock payment delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const res = await confirmBookingUseCase.execute(seatIds, showId, "pay_mock_1234");
+      const res = await confirmBookingUseCase.execute(seatIds, showId);
       if (res && res.success) {
         sessionStorage.setItem("bookingResult", JSON.stringify(res));
         navigate("/dashboard");
@@ -31,7 +40,11 @@ export default function Checkout() {
         alert("Payment failed. Please try again.");
       }
     } catch (error) {
-      alert("System error during payment.");
+      const msg =
+        error && typeof error === "object" && typeof error.error === "string"
+          ? error.error
+          : "Payment or confirmation failed.";
+      alert(msg);
       navigate(`/shows/${showId}/seats`);
     }
   };
@@ -56,7 +69,7 @@ export default function Checkout() {
             
             <div className="summary-item flex-between mb-4">
               <span className="text-muted">Movie</span>
-              <span className="bold">Apex Legends: The Movie</span>
+              <span className="bold">{movieTitle}</span>
             </div>
             <div className="summary-item flex-between mb-4">
               <span className="text-muted">Seats</span>

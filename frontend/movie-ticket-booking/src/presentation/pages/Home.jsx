@@ -26,6 +26,15 @@ const TRENDING_MOVIES = [
 const GENRES = ['All', 'Action', 'Sci-Fi', 'Comedy', 'Drama', 'Horror', 'Romance', 'Thriller'];
 const THEATRES = ['IMAX Zenith', 'Cineplex Royale', 'Neon Dreams Auto-Theatre', 'Starlight Drive-in'];
 
+function formatShowTimeLabel(time) {
+  if (!time || typeof time !== 'string') return '';
+  if (time.includes('T')) {
+    const part = time.split('T')[1] || '';
+    return part.slice(0, 5);
+  }
+  return time.slice(0, 5);
+}
+
 export default function Home() {
   const navigate = useNavigate();
   const [movies, setMovies] = useState([]);
@@ -185,14 +194,24 @@ export default function Home() {
                   <div className="showtimes mt-4">
                     <div className="showtimes-label"><Clock size={14} /> Available Shows</div>
                     <div className="showtimes-list">
-                      {shows.map(show => (
+                      {shows
+                        .filter((show) => String(show.movieId) === String(movie.movieId))
+                        .map((show) => (
                         <button 
                           key={show.showId}
                           className="time-btn"
-                          onClick={() => navigate(`/shows/${show.showId}/seats`)}
+                          onClick={() =>
+                            navigate(`/shows/${show.showId}/seats`, {
+                              state: {
+                                movieId: movie.movieId,
+                                theatreName: show.theatreName,
+                                showTime: show.time
+                              }
+                            })
+                          }
                         >
-                          {show.time.substring(0, 5)}
-                          <span className="tooltip">{show.format}</span>
+                          {formatShowTimeLabel(show.time)}
+                          <span className="tooltip">{show.theatreName} · {show.format}</span>
                         </button>
                       ))}
                     </div>

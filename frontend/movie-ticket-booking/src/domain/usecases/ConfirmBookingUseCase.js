@@ -3,8 +3,8 @@ class ConfirmBookingUseCase {
     this.bookingRepository = bookingRepository;
   }
   bookingRepository;
-  async execute(seatIds, showId, paymentId) {
-    return this.bookingRepository.confirmBooking(seatIds, showId, paymentId);
+  async execute(seatIds, showId) {
+    return this.bookingRepository.confirmBooking(seatIds, showId);
   }
 }
 export {

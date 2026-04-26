@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -14,7 +15,7 @@ import com.movie_booking_system.booking_service.domain.repository.SeatLockPort;
 @Component
 public class RedisSeatLockAdapter implements SeatLockPort {
 
-	private static final Duration LOCK_TTL = Duration.ofMinutes(5);
+	private static final Duration LOCK_TTL = Duration.ofMinutes(10);
 
 	private final RedisTemplate<String, String> redisTemplate;
 
@@ -73,6 +74,12 @@ public class RedisSeatLockAdapter implements SeatLockPort {
 			}
 		}
 		return seatIds;
+	}
+
+	@Override
+	public Optional<String> getLockOwner(Long showId, String seatId) {
+		String value = redisTemplate.opsForValue().get(buildKey(showId, seatId));
+		return Optional.ofNullable(value);
 	}
 
 	private static String buildKey(Long showId, String seatId) {

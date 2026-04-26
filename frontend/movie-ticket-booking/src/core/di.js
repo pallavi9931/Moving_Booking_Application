@@ -18,9 +18,9 @@ const confirmBookingUseCase = new ConfirmBookingUseCase(bookingRepository);
 const releaseLockUseCase = new ReleaseLockUseCase(inventoryRepository);
 export {
   confirmBookingUseCase,
+  getMovieDetailsUseCase,
   getShowSeatsUseCase,
   lockSeatsUseCase,
   releaseLockUseCase,
-  searchMoviesUseCase,
-  getMovieDetailsUseCase
+  searchMoviesUseCase
 };

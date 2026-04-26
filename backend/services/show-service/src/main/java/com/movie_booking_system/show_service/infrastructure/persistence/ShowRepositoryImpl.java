@@ -34,11 +34,12 @@ public class ShowRepositoryImpl implements ShowRepository {
 			entity.setId(show.getId());
 		}
 		entity.setMovieId(show.getMovieId());
+		entity.setTheatreId(show.getTheatreId());
 		entity.setShowTime(show.getShowTime());
 		return entity;
 	}
 
 	private Show toDomain(ShowEntity entity) {
-		return new Show(entity.getId(), entity.getMovieId(), entity.getShowTime());
+		return new Show(entity.getId(), entity.getMovieId(), entity.getTheatreId(), entity.getShowTime());
 	}
 }

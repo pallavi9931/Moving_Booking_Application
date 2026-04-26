@@ -6,14 +6,16 @@ public class Show {
 
 	private Long id;
 	private Long movieId;
+	private Long theatreId;
 	private String showTime;
 
 	public Show() {
 	}
 
-	public Show(Long id, Long movieId, String showTime) {
+	public Show(Long id, Long movieId, Long theatreId, String showTime) {
 		this.id = id;
 		this.movieId = movieId;
+		this.theatreId = theatreId;
 		this.showTime = showTime;
 	}
 
@@ -33,6 +35,14 @@ public class Show {
 		this.movieId = movieId;
 	}
 
+	public Long getTheatreId() {
+		return theatreId;
+	}
+
+	public void setTheatreId(Long theatreId) {
+		this.theatreId = theatreId;
+	}
+
 	public String getShowTime() {
 		return showTime;
 	}
@@ -50,12 +60,12 @@ public class Show {
 			return false;
 		}
 		Show show = (Show) o;
-		return Objects.equals(id, show.id) && Objects.equals(movieId, show.movieId) && Objects.equals(
-				showTime, show.showTime);
+		return Objects.equals(id, show.id) && Objects.equals(movieId, show.movieId)
+				&& Objects.equals(theatreId, show.theatreId) && Objects.equals(showTime, show.showTime);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, movieId, showTime);
+		return Objects.hash(id, movieId, theatreId, showTime);
 	}
 }

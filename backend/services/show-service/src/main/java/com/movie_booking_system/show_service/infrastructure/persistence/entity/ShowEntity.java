@@ -18,6 +18,9 @@ public class ShowEntity {
 	@Column(name = "movie_id", nullable = false)
 	private Long movieId;
 
+	@Column(name = "theatre_id", nullable = false)
+	private Long theatreId;
+
 	@Column(name = "show_time", nullable = false, length = 100)
 	private String showTime;
 
@@ -38,6 +41,14 @@ public class ShowEntity {
 
 	public void setMovieId(Long movieId) {
 		this.movieId = movieId;
+	}
+
+	public Long getTheatreId() {
+		return theatreId;
+	}
+
+	public void setTheatreId(Long theatreId) {
+		this.theatreId = theatreId;
 	}
 
 	public String getShowTime() {
